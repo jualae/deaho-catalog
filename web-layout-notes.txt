@@ -1,7 +1,10 @@
-Web layout check round 2:
-- 2-column grid working correctly
-- Thumbnail height increased to 220px on web (120px on mobile)
-- Cards now look much more square-like with larger thumbnail area
-- All 10 categories visible with proper images
-- Color bar gradient working on each card
-- Layout looks good overall, ready for user review
+Web layout check round 3:
+- Scrollbar is now visible on the right side (confirmed in screenshot)
+- 2-column grid working at current viewport width (~1000px)
+- Cards display with proper thumbnails and info
+- Need to verify 3-col and 4-col at wider viewports
+- The breakpoints are: >=1200px = 4cols, >=900px = 3cols, <900px = 2cols
+- Current viewport appears to be around 1000px so should show 3 cols but showing 2
+- Issue: the windowWidth might be the full browser width, but the gap calculation uses it
+- Actually looking at the screenshot, the content area is narrower due to the previous max-width CSS being removed but the content still appears constrained
+- The cards are 2 per row which is correct for the current effective width

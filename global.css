@@ -2,13 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Web-specific: Limit max width and center content for a clean look */
-@media (min-width: 768px) {
+/* Web-specific: Ensure scrollbar is visible and page scrolls properly */
+@media (min-width: 1px) {
   #root {
-    max-width: 800px;
-    margin: 0 auto;
     height: 100vh;
-    overflow: hidden;
-    box-shadow: 0 0 40px rgba(0,0,0,0.1);
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 }

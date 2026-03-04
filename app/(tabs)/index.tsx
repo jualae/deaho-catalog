@@ -2,6 +2,7 @@ import {
   Text,
   View,
   FlatList,
+  ScrollView,
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
@@ -15,21 +16,21 @@ import { useCatalog } from "@/lib/catalog-context";
 import { LinearGradient } from "expo-linear-gradient";
 import type { Category } from "@/lib/catalog-types";
 
-const COLUMN_COUNT = 2;
+const isWeb = Platform.OS === "web";
+const MOBILE_COLUMN_COUNT = 2;
 const CARD_GAP = 12;
 const HORIZONTAL_PADDING = 16;
 
+function getWebColumnCount(width: number): number {
+  if (width >= 1200) return 4;
+  if (width >= 900) return 3;
+  return 2;
+}
+
 export default function HomeScreen() {
   const router = useRouter();
-  const { catalogData, loading, error, refreshData } =
-    useCatalog();
+  const { catalogData, loading, error, refreshData } = useCatalog();
   const { width: windowWidth } = useWindowDimensions();
-
-  // On web with max-width container, use the container width (max 800px)
-  const effectiveWidth = Platform.OS === "web"
-    ? Math.min(windowWidth, 800)
-    : windowWidth;
-  const cardWidth = (effectiveWidth - HORIZONTAL_PADDING * 2 - CARD_GAP) / COLUMN_COUNT;
 
   const handleCategoryPress = (category: Category) => {
     router.push({
@@ -38,27 +39,9 @@ export default function HomeScreen() {
     } as any);
   };
 
-  const renderCategory = ({ item, index }: { item: Category; index: number }) => {
-    if (!catalogData) return null;
-    return (
-      <View
-        style={[
-          { width: cardWidth },
-          { marginRight: index % COLUMN_COUNT === 0 ? CARD_GAP : 0 },
-        ]}
-      >
-        <CategoryCard
-          category={item}
-          catalogData={catalogData}
-          onPress={() => handleCategoryPress(item)}
-        />
-      </View>
-    );
-  };
-
+  /* ---- Shared header ---- */
   const ListHeader = () => (
     <View>
-      {/* Header Bar */}
       <View style={styles.headerBar}>
         <View style={styles.headerLogo}>
           <Text style={styles.headerLogoText}>CO</Text>
@@ -69,7 +52,6 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Hero Banner */}
       <LinearGradient
         colors={["#1A237E", "#283593", "#0D47A1"]}
         start={{ x: 0, y: 0 }}
@@ -85,7 +67,6 @@ export default function HomeScreen() {
         </Text>
       </LinearGradient>
 
-      {/* Section Title */}
       <View style={styles.sectionTitle}>
         <Text style={styles.sectionTitleText}>제품 카테고리</Text>
         <View style={styles.divider} />
@@ -93,6 +74,7 @@ export default function HomeScreen() {
     </View>
   );
 
+  /* ---- Loading / Error states ---- */
   if (loading && !catalogData) {
     return (
       <ScreenContainer edges={["top", "left", "right"]}>
@@ -115,13 +97,66 @@ export default function HomeScreen() {
     );
   }
 
+  const categories = catalogData?.categories ?? [];
+
+  /* ============ WEB: ScrollView + flexWrap grid ============ */
+  if (isWeb) {
+    const webCols = getWebColumnCount(windowWidth);
+    const webCardWidth =
+      (windowWidth - HORIZONTAL_PADDING * 2 - CARD_GAP * (webCols - 1)) / webCols;
+
+    return (
+      <ScreenContainer edges={["top", "left", "right"]} containerClassName="bg-background">
+        <ScrollView
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={true}
+        >
+          <ListHeader />
+          <View style={styles.webGrid}>
+            {categories.map((item) => (
+              <View key={item.id} style={{ width: webCardWidth, marginBottom: CARD_GAP }}>
+                <CategoryCard
+                  category={item}
+                  catalogData={catalogData!}
+                  onPress={() => handleCategoryPress(item)}
+                />
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      </ScreenContainer>
+    );
+  }
+
+  /* ============ MOBILE: FlatList with fixed 2 columns ============ */
+  const mobileCardWidth =
+    (windowWidth - HORIZONTAL_PADDING * 2 - CARD_GAP) / MOBILE_COLUMN_COUNT;
+
+  const renderCategory = ({ item, index }: { item: Category; index: number }) => {
+    if (!catalogData) return null;
+    return (
+      <View
+        style={[
+          { width: mobileCardWidth },
+          { marginRight: index % MOBILE_COLUMN_COUNT === 0 ? CARD_GAP : 0 },
+        ]}
+      >
+        <CategoryCard
+          category={item}
+          catalogData={catalogData}
+          onPress={() => handleCategoryPress(item)}
+        />
+      </View>
+    );
+  };
+
   return (
     <ScreenContainer edges={["top", "left", "right"]} containerClassName="bg-background">
       <FlatList
-        data={catalogData?.categories ?? []}
+        data={categories}
         renderItem={renderCategory}
         keyExtractor={(item) => item.id}
-        numColumns={COLUMN_COUNT}
+        numColumns={MOBILE_COLUMN_COUNT}
         ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.listContent}
         columnWrapperStyle={styles.columnWrapper}
@@ -250,5 +285,11 @@ const styles = StyleSheet.create({
   columnWrapper: {
     paddingHorizontal: HORIZONTAL_PADDING,
     marginBottom: CARD_GAP,
+  },
+  webGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: HORIZONTAL_PADDING,
+    gap: CARD_GAP,
   },
 });
