@@ -36,9 +36,10 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
   const translateY = useSharedValue(0);
   const savedTranslateX = useSharedValue(0);
   const savedTranslateY = useSharedValue(0);
-  // Store the focal point offset accumulated during pinch
-  const focalOffsetX = useSharedValue(0);
-  const focalOffsetY = useSharedValue(0);
+  // Track the initial focal point when pinch begins
+  const pinchFocalX = useSharedValue(0);
+  const pinchFocalY = useSharedValue(0);
+  const isPinchActive = useSharedValue(false);
   const [isZoomed, setIsZoomed] = useState(false);
 
   const updateZoomState = useCallback((zoomed: boolean) => {
@@ -58,23 +59,23 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
 
   const pinchGesture = Gesture.Pinch()
     .onBegin((e) => {
-      // Reset focal offset at the start of each pinch
-      focalOffsetX.value = 0;
-      focalOffsetY.value = 0;
+      // Capture the initial focal point at pinch start
+      pinchFocalX.value = e.focalX - width / 2;
+      pinchFocalY.value = e.focalY - height / 2;
+      isPinchActive.value = true;
     })
     .onUpdate((e) => {
       // Calculate new scale
       const newScale = Math.min(Math.max(savedScale.value * e.scale, 1), 5);
 
-      // Focal point relative to the center of the container
-      const focalX = e.focalX - width / 2;
-      const focalY = e.focalY - height / 2;
+      // Use the initial focal point (captured at onBegin) so it stays stable
+      const focalX = pinchFocalX.value;
+      const focalY = pinchFocalY.value;
 
       // How much scale changed from the saved scale
       const scaleDiff = newScale / savedScale.value;
 
-      // Translate so that the focal point stays under the fingers:
-      // newTranslate = savedTranslate - focal * (scaleDiff - 1)
+      // Translate so that the focal point stays under the fingers
       const newTx = savedTranslateX.value - focalX * (scaleDiff - 1);
       const newTy = savedTranslateY.value - focalY * (scaleDiff - 1);
 
@@ -85,6 +86,7 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
       translateY.value = clamped.y;
     })
     .onEnd(() => {
+      isPinchActive.value = false;
       if (scale.value < 1.1) {
         // Snap back to 1x
         scale.value = withTiming(1, { duration: 200 });
@@ -95,6 +97,7 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
         savedTranslateY.value = 0;
         runOnJS(updateZoomState)(false);
       } else {
+        // Save the current state exactly as-is — no jump
         savedScale.value = scale.value;
         savedTranslateX.value = translateX.value;
         savedTranslateY.value = translateY.value;
