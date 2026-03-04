@@ -14,7 +14,10 @@ import { ScreenContainer } from "@/components/screen-container";
 import { CategoryCard } from "@/components/category-card";
 import { useCatalog } from "@/lib/catalog-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { Image } from "expo-image";
 import type { Category } from "@/lib/catalog-types";
+
+const ceradLogo = require("@/assets/images/icon.png");
 
 const isWeb = Platform.OS === "web";
 const MOBILE_COLUMN_COUNT = 2;
@@ -37,9 +40,7 @@ export default function HomeScreen() {
   const ListHeader = () => (
     <View>
       <View style={styles.headerBar}>
-        <View style={styles.headerLogo}>
-          <Text style={styles.headerLogoText}>CO</Text>
-        </View>
+        <Image source={ceradLogo} style={styles.headerLogoImg} contentFit="contain" />
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>CERAD · 대호상사</Text>
           <Text style={styles.headerSubtitle}>전문 미용 제품 카탈로그</Text>
@@ -55,7 +56,7 @@ export default function HomeScreen() {
         <View style={styles.heroBadge}>
           <Text style={styles.heroBadgeText}>CERAD CATALOG</Text>
         </View>
-        <Text style={styles.heroTitle}>CERAD</Text>
+        <Image source={ceradLogo} style={styles.heroLogo} contentFit="contain" />
         <Text style={styles.heroSubtitle}>
           대호상사 · Hair & Murin 전문 미용용품 종합 카탈로그
         </Text>
@@ -197,19 +198,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 14,
   },
-  headerLogo: {
+  headerLogoImg: {
     width: 42,
     height: 42,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 21,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerLogoText: {
-    fontSize: 18,
-    fontWeight: "900",
-    color: "#1A237E",
-    letterSpacing: -1,
+    borderRadius: 10,
   },
   headerTitleContainer: {
     flex: 1,
@@ -243,12 +235,11 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 2,
   },
-  heroTitle: {
-    fontSize: 36,
-    fontWeight: "900",
-    color: "#FFFFFF",
-    letterSpacing: 3,
-    marginBottom: 8,
+  heroLogo: {
+    width: 120,
+    height: 120,
+    borderRadius: 24,
+    marginBottom: 12,
   },
   heroSubtitle: {
     fontSize: 13,
