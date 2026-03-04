@@ -7,7 +7,7 @@ const FAVORITES_KEY = "@cerad_favorites_v2"; // v2: page-level favorites
 
 // S3 catalog.json URL (uploaded via storagePut)
 const CATALOG_S3_URL =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663337257885/g9FMjJFMH7rkmYiPvT29tr/cerad-catalog/catalog.json";
+  "https://d2xsxph8kpxj0f.cloudfront.net/310519663337257885/g9FMjJFMH7rkmYiPvT29tr/cerad-catalog/catalog_v2.json";
 
 function getApiBaseUrl(): string {
   if (Platform.OS === "web") {
