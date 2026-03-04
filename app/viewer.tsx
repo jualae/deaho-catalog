@@ -29,6 +29,19 @@ const HEADER_HEIGHT = 44;
 const THUMB_STRIP_HEIGHT = 80;
 const MAIN_IMAGE_HEIGHT = SCREEN_HEIGHT - HEADER_HEIGHT - THUMB_STRIP_HEIGHT - 60;
 
+/**
+ * ZoomableImage with proper focal-point pinch zoom.
+ *
+ * Key insight for consecutive pinch zoom:
+ * The focal point from the gesture event (e.focalX/Y) is in *screen* coordinates.
+ * To find the corresponding point on the *image*, we must account for the current
+ * translation and scale. The formula to convert screen focal to image-space focal:
+ *
+ *   imageFocal = (screenFocal - containerCenter - currentTranslate) / currentScale
+ *
+ * Then the new translate to keep that image point under the finger:
+ *   newTranslate = screenFocal - containerCenter - imageFocal * newScale
+ */
 function ZoomableImage({ uri, width, height }: { uri: string; width: number; height: number }) {
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
@@ -36,66 +49,64 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
   const translateY = useSharedValue(0);
   const savedTranslateX = useSharedValue(0);
   const savedTranslateY = useSharedValue(0);
-  // Track the initial focal point when pinch begins (in image-local coordinates)
-  const pinchFocalX = useSharedValue(0);
-  const pinchFocalY = useSharedValue(0);
-  // Track the scale at the very start of this pinch gesture (snapshot of savedScale)
-  const pinchStartScale = useSharedValue(1);
-  const pinchStartTx = useSharedValue(0);
-  const pinchStartTy = useSharedValue(0);
+
+  // The image-space focal point (computed once at pinch begin)
+  const imageFocalX = useSharedValue(0);
+  const imageFocalY = useSharedValue(0);
+  // The screen-space focal point (fixed at pinch begin)
+  const screenFocalX = useSharedValue(0);
+  const screenFocalY = useSharedValue(0);
+  // Base scale at the start of this pinch
+  const baseScale = useSharedValue(1);
+
   const [isZoomed, setIsZoomed] = useState(false);
 
   const updateZoomState = useCallback((zoomed: boolean) => {
     setIsZoomed(zoomed);
   }, []);
 
-  // Helper to clamp translation within bounds
-  const clampTranslation = (tx: number, ty: number, s: number) => {
+  const clampTx = (tx: number, s: number) => {
     "worklet";
     const maxX = (width * (s - 1)) / 2;
+    return Math.min(Math.max(tx, -maxX), maxX);
+  };
+
+  const clampTy = (ty: number, s: number) => {
+    "worklet";
     const maxY = (height * (s - 1)) / 2;
-    return {
-      x: Math.min(Math.max(tx, -maxX), maxX),
-      y: Math.min(Math.max(ty, -maxY), maxY),
-    };
+    return Math.min(Math.max(ty, -maxY), maxY);
   };
 
   const pinchGesture = Gesture.Pinch()
     .onBegin((e) => {
-      // Snapshot the current saved state at the start of this pinch
-      pinchStartScale.value = savedScale.value;
-      pinchStartTx.value = savedTranslateX.value;
-      pinchStartTy.value = savedTranslateY.value;
+      // Snapshot current state
+      baseScale.value = scale.value;
 
-      // Capture the focal point relative to the container center
-      pinchFocalX.value = e.focalX - width / 2;
-      pinchFocalY.value = e.focalY - height / 2;
+      // Screen focal relative to container center
+      const sfx = e.focalX - width / 2;
+      const sfy = e.focalY - height / 2;
+      screenFocalX.value = sfx;
+      screenFocalY.value = sfy;
+
+      // Convert screen focal to image-space focal
+      // image point = (screenFocal - translate) / scale
+      imageFocalX.value = (sfx - translateX.value) / scale.value;
+      imageFocalY.value = (sfy - translateY.value) / scale.value;
     })
     .onUpdate((e) => {
-      // Calculate new scale based on the scale at pinch start
-      const newScale = Math.min(Math.max(pinchStartScale.value * e.scale, 1), 5);
+      const newScale = Math.min(Math.max(baseScale.value * e.scale, 1), 5);
 
-      // Use the fixed focal point captured at onBegin
-      const focalX = pinchFocalX.value;
-      const focalY = pinchFocalY.value;
-
-      // How much scale changed from the pinch start scale
-      const scaleDiff = newScale / pinchStartScale.value;
-
-      // Translate so that the focal point stays under the fingers
-      // Uses pinchStart values (not saved values that might change mid-gesture)
-      const newTx = pinchStartTx.value - focalX * (scaleDiff - 1);
-      const newTy = pinchStartTy.value - focalY * (scaleDiff - 1);
-
-      const clamped = clampTranslation(newTx, newTy, newScale);
+      // Keep the same image point under the same screen point:
+      // newTranslate = screenFocal - imageFocal * newScale
+      const newTx = screenFocalX.value - imageFocalX.value * newScale;
+      const newTy = screenFocalY.value - imageFocalY.value * newScale;
 
       scale.value = newScale;
-      translateX.value = clamped.x;
-      translateY.value = clamped.y;
+      translateX.value = clampTx(newTx, newScale);
+      translateY.value = clampTy(newTy, newScale);
     })
     .onEnd(() => {
       if (scale.value < 1.1) {
-        // Snap back to 1x
         scale.value = withTiming(1, { duration: 200 });
         savedScale.value = 1;
         translateX.value = withTiming(0, { duration: 200 });
@@ -104,7 +115,6 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
         savedTranslateY.value = 0;
         runOnJS(updateZoomState)(false);
       } else {
-        // Save the current state exactly as-is — no jump on next pinch
         savedScale.value = scale.value;
         savedTranslateX.value = translateX.value;
         savedTranslateY.value = translateY.value;
@@ -116,15 +126,13 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
     .minPointers(1)
     .onUpdate((e) => {
       if (savedScale.value > 1) {
-        const maxX = (width * (savedScale.value - 1)) / 2;
-        const maxY = (height * (savedScale.value - 1)) / 2;
-        translateX.value = Math.min(
-          Math.max(savedTranslateX.value + e.translationX, -maxX),
-          maxX
+        translateX.value = clampTx(
+          savedTranslateX.value + e.translationX,
+          savedScale.value
         );
-        translateY.value = Math.min(
-          Math.max(savedTranslateY.value + e.translationY, -maxY),
-          maxY
+        translateY.value = clampTy(
+          savedTranslateY.value + e.translationY,
+          savedScale.value
         );
       }
     })
@@ -137,7 +145,6 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
     .numberOfTaps(2)
     .onEnd((e) => {
       if (savedScale.value > 1) {
-        // Zoom out to 1x
         scale.value = withTiming(1, { duration: 250 });
         savedScale.value = 1;
         translateX.value = withTiming(0, { duration: 250 });
@@ -146,22 +153,23 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
         savedTranslateY.value = 0;
         runOnJS(updateZoomState)(false);
       } else {
-        // Zoom in to 2.5x centered on the tap point
         const targetScale = 2.5;
-        const focalX = e.x - width / 2;
-        const focalY = e.y - height / 2;
-
-        // Translate so the tapped point stays in place
-        const newTx = -focalX * (targetScale - 1);
-        const newTy = -focalY * (targetScale - 1);
-        const clamped = clampTranslation(newTx, newTy, targetScale);
+        // Screen focal relative to center
+        const sfx = e.x - width / 2;
+        const sfy = e.y - height / 2;
+        // Image focal (at scale=1, translate=0): same as screen focal
+        const ifx = sfx;
+        const ify = sfy;
+        // New translate to keep tap point in place
+        const newTx = clampTx(sfx - ifx * targetScale, targetScale);
+        const newTy = clampTy(sfy - ify * targetScale, targetScale);
 
         scale.value = withTiming(targetScale, { duration: 250 });
         savedScale.value = targetScale;
-        translateX.value = withTiming(clamped.x, { duration: 250 });
-        translateY.value = withTiming(clamped.y, { duration: 250 });
-        savedTranslateX.value = clamped.x;
-        savedTranslateY.value = clamped.y;
+        translateX.value = withTiming(newTx, { duration: 250 });
+        translateY.value = withTiming(newTy, { duration: 250 });
+        savedTranslateX.value = newTx;
+        savedTranslateY.value = newTy;
         runOnJS(updateZoomState)(true);
       }
     });
@@ -261,11 +269,29 @@ export default function ViewerScreen() {
   const renderMainImage = ({ item: pageNum }: { item: number }) => {
     const url = getImageUrl(catalogData, pageNum);
     return (
-      <ZoomableImage
-        uri={url}
-        width={SCREEN_WIDTH}
-        height={MAIN_IMAGE_HEIGHT}
-      />
+      <View style={{ width: SCREEN_WIDTH, height: MAIN_IMAGE_HEIGHT, position: "relative" }}>
+        <ZoomableImage
+          uri={url}
+          width={SCREEN_WIDTH}
+          height={MAIN_IMAGE_HEIGHT}
+        />
+        {/* Favorite Heart on image top-right */}
+        <Pressable
+          onPress={handleToggleFavorite}
+          style={({ pressed }) => [
+            styles.imageHeartBtn,
+            pressed && { opacity: 0.7 },
+          ]}
+        >
+          <View style={styles.imageHeartBg}>
+            <MaterialIcons
+              name={isFav ? "favorite" : "favorite-border"}
+              size={26}
+              color={isFav ? "#FF4081" : "#FFFFFF"}
+            />
+          </View>
+        </Pressable>
+      </View>
     );
   };
 
@@ -307,20 +333,6 @@ export default function ViewerScreen() {
         <Text style={styles.catName} numberOfLines={1}>
           {category.name}
         </Text>
-        {/* Favorite Heart Button */}
-        <Pressable
-          onPress={handleToggleFavorite}
-          style={({ pressed }) => [
-            styles.favBtn,
-            pressed && { opacity: 0.7 },
-          ]}
-        >
-          <MaterialIcons
-            name={isFav ? "favorite" : "favorite-border"}
-            size={24}
-            color={isFav ? "#FF4081" : "#999999"}
-          />
-        </Pressable>
         <View style={styles.indicator}>
           <Text style={styles.indicatorText}>
             {currentIndex + 1} / {pages.length}
@@ -426,9 +438,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#FFFFFF",
   },
-  favBtn: {
-    padding: 4,
-  },
   indicator: {
     backgroundColor: "#333333",
     paddingHorizontal: 12,
@@ -438,6 +447,17 @@ const styles = StyleSheet.create({
   indicatorText: {
     color: "#999999",
     fontSize: 12,
+  },
+  imageHeartBtn: {
+    position: "absolute",
+    top: 12,
+    right: 16,
+    zIndex: 10,
+  },
+  imageHeartBg: {
+    backgroundColor: "rgba(0,0,0,0.45)",
+    borderRadius: 20,
+    padding: 8,
   },
   thumbStrip: {
     backgroundColor: "#1A1A1A",
