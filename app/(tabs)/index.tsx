@@ -52,13 +52,19 @@ export default function HomeScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.hero}
       >
-        <View style={styles.heroBadge}>
-          <Text style={styles.heroBadgeText}>CERAD CATALOG</Text>
+        <Image
+          source={{ uri: "https://d2xsxph8kpxj0f.cloudfront.net/310519663337257885/g9FMjJFMH7rkmYiPvT29tr/organic-pattern-bg_3052167a.png" }}
+          style={styles.heroPattern}
+        />
+        <View style={styles.heroContent}>
+          <View style={styles.heroBadge}>
+            <Text style={styles.heroBadgeText}>CERAD CATALOG</Text>
+          </View>
+          <Image source={ceradLogo} style={styles.heroLogo} contentFit="contain" />
+          <Text style={styles.heroSubtitle}>
+            대호상사 · 전문 미용용품 종합 카탈로그
+          </Text>
         </View>
-        <Image source={ceradLogo} style={styles.heroLogo} contentFit="contain" />
-        <Text style={styles.heroSubtitle}>
-          대호상사 · 전문 미용용품 종합 카탈로그
-        </Text>
       </LinearGradient>
 
       <View style={styles.sectionTitle}>
@@ -220,6 +226,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 24,
     alignItems: "center",
+    position: "relative",
+    overflow: "hidden",
+  },
+  heroPattern: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.15,
+  },
+  heroContent: {
+    alignItems: "center",
+    zIndex: 1,
   },
   heroBadge: {
     backgroundColor: "#FF6F00",
@@ -227,6 +247,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 20,
     marginBottom: 12,
+    zIndex: 2,
   },
   heroBadgeText: {
     color: "#FFFFFF",
