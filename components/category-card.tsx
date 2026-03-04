@@ -41,47 +41,50 @@ export function CategoryCard({
             <MaterialIcons name="image" size={32} color="#BDBDBD" />
           </View>
         )}
-        <View style={[styles.numBadge, { backgroundColor: category.color }]}>
+        <Pressable
+          onPress={(e) => {
+            e.stopPropagation?.();
+            onToggleFavorite();
+          }}
+          style={({ pressed }) => [
+            styles.favBtn,
+            pressed && { opacity: 0.6 },
+          ]}
+          hitSlop={8}
+        >
+          <MaterialIcons
+            name={isFavorite ? "favorite" : "favorite-border"}
+            size={22}
+            color={isFavorite ? "#EF4444" : "rgba(255,255,255,0.8)"}
+          />
+        </Pressable>
+      </View>
+
+      {/* Category Name - Large & Bold */}
+      <View style={[styles.nameBar, { backgroundColor: category.color }]}>
+        <View style={styles.numBadge}>
           <Text style={styles.numText}>{category.num}</Text>
         </View>
+        <Text style={styles.name} numberOfLines={1}>
+          {category.name}
+        </Text>
       </View>
+
       <View style={styles.body}>
-        <View style={styles.header}>
-          <View style={styles.nameContainer}>
-            <Text style={styles.name} numberOfLines={1}>
-              {category.name}
-            </Text>
-            <Text style={styles.nameEn} numberOfLines={1}>
-              {category.name_en}
-            </Text>
-          </View>
-          <Pressable
-            onPress={(e) => {
-              e.stopPropagation?.();
-              onToggleFavorite();
-            }}
-            style={({ pressed }) => [
-              styles.favBtn,
-              pressed && { opacity: 0.6 },
-            ]}
-            hitSlop={8}
-          >
-            <MaterialIcons
-              name={isFavorite ? "favorite" : "favorite-border"}
-              size={22}
-              color={isFavorite ? "#EF4444" : "#9CA3AF"}
-            />
-          </Pressable>
-        </View>
+        <Text style={styles.nameEn} numberOfLines={1}>
+          {category.name_en}
+        </Text>
         <Text style={styles.desc} numberOfLines={2}>
           {category.desc}
         </Text>
         <View style={styles.footer}>
           <View style={styles.pagesBadge}>
+            <MaterialIcons name="photo-library" size={12} color="#757575" />
             <Text style={styles.pagesText}>{category.pages.length}페이지</Text>
           </View>
           <View style={[styles.viewBtn, { backgroundColor: category.color }]}>
             <Text style={styles.viewBtnText}>보기</Text>
+            <MaterialIcons name="chevron-right" size={14} color="#FFFFFF" />
           </View>
         </View>
       </View>
@@ -112,49 +115,59 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  numBadge: {
+  favBtn: {
     position: "absolute",
     top: 8,
-    left: 8,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    right: 8,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 16,
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  nameBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  numBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.3)",
     alignItems: "center",
     justifyContent: "center",
   },
   numText: {
     color: "#FFFFFF",
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "800",
+  },
+  name: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: 0.5,
   },
   body: {
     padding: 12,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  nameContainer: {
-    flex: 1,
-    marginRight: 8,
-  },
-  name: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#212121",
+    paddingTop: 8,
   },
   nameEn: {
-    fontSize: 10,
-    color: "#757575",
+    fontSize: 11,
+    color: "#9CA3AF",
     letterSpacing: 0.5,
-    marginTop: 1,
+    marginBottom: 4,
+    textTransform: "uppercase",
   },
   desc: {
-    fontSize: 11,
+    fontSize: 12,
     color: "#757575",
-    lineHeight: 16,
+    lineHeight: 17,
     marginBottom: 10,
   },
   footer: {
@@ -163,9 +176,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   pagesBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
     backgroundColor: "#F5F5F5",
     paddingHorizontal: 10,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: 20,
   },
   pagesText: {
@@ -173,6 +189,9 @@ const styles = StyleSheet.create({
     color: "#757575",
   },
   viewBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
     paddingHorizontal: 14,
     paddingVertical: 5,
     borderRadius: 20,
@@ -181,8 +200,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
     color: "#FFFFFF",
-  },
-  favBtn: {
-    padding: 2,
   },
 });

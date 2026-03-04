@@ -38,9 +38,9 @@ export function getImageUrl(catalogData: CatalogData, pageNum: number): string {
 }
 
 async function fetchFromS3(): Promise<CatalogData> {
-  const response = await fetch(CATALOG_S3_URL, {
+  const response = await fetch(CATALOG_S3_URL + "?t=" + Date.now(), {
     method: "GET",
-    headers: { Accept: "application/json" },
+    headers: { Accept: "application/json", "Cache-Control": "no-cache" },
   });
   if (!response.ok) throw new Error(`S3 error: ${response.status}`);
   return response.json();

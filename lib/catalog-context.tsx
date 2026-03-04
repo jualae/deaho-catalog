@@ -37,17 +37,19 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      // Try cache first for fast startup
-      const cached = await getCachedCatalogData();
-      if (cached) {
-        setCatalogData(cached);
-        setLoading(false);
-      }
-      // Then fetch fresh data
+      // Always fetch fresh data from S3 first
       const fresh = await fetchCatalogData();
       setCatalogData(fresh);
     } catch (err: any) {
-      if (!catalogData) {
+      // Fallback to cache on error
+      try {
+        const cached = await getCachedCatalogData();
+        if (cached) {
+          setCatalogData(cached);
+        } else {
+          setError("카탈로그 데이터를 불러올 수 없습니다.");
+        }
+      } catch {
         setError("카탈로그 데이터를 불러올 수 없습니다.");
       }
     } finally {
