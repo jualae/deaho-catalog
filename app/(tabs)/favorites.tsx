@@ -6,13 +6,13 @@ import {
   Pressable,
   StyleSheet,
   Dimensions,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Image } from "expo-image";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { ScreenContainer } from "@/components/screen-container";
 import { useCatalog } from "@/lib/catalog-context";
-import { getImageUrl } from "@/lib/catalog-service";
+import { getImageUrl, parsePageId } from "@/lib/catalog-service";
 import type { Category } from "@/lib/catalog-types";
 
 const { width } = Dimensions.get("window");
@@ -21,27 +21,43 @@ const CARD_GAP = 12;
 const HORIZONTAL_PADDING = 16;
 const CARD_WIDTH = (width - HORIZONTAL_PADDING * 2 - CARD_GAP) / COLUMN_COUNT;
 
+interface FavoriteItem {
+  pageId: string;
+  categoryId: string;
+  pageNum: number;
+  category: Category;
+}
+
 export default function FavoritesScreen() {
   const router = useRouter();
   const { catalogData, favorites, toggleFavorite } = useCatalog();
 
-  const favoriteCategories = useMemo(() => {
+  const favoriteItems = useMemo(() => {
     if (!catalogData) return [];
-    return catalogData.categories.filter((c: Category) =>
-      favorites.includes(c.id)
-    );
+    const items: FavoriteItem[] = [];
+    for (const pageId of favorites) {
+      const { categoryId, pageNum } = parsePageId(pageId);
+      const category = catalogData.categories.find((c: Category) => c.id === categoryId);
+      if (category) {
+        items.push({ pageId, categoryId, pageNum, category });
+      }
+    }
+    return items;
   }, [catalogData, favorites]);
 
-  const handlePress = (category: Category) => {
+  const handlePress = (item: FavoriteItem) => {
+    // Navigate to viewer at the specific page
+    const pageIndex = item.category.pages.indexOf(item.pageNum);
     router.push({
       pathname: "/viewer",
-      params: { categoryId: category.id },
+      params: { categoryId: item.categoryId, startPage: pageIndex >= 0 ? pageIndex : 0 },
     } as any);
   };
 
-  const renderItem = ({ item, index }: { item: Category; index: number }) => {
+  const renderItem = ({ item, index }: { item: FavoriteItem; index: number }) => {
     if (!catalogData) return null;
-    const thumbUrl = getImageUrl(catalogData, item.pages[0]);
+    const thumbUrl = getImageUrl(catalogData, item.pageNum);
+    const pageIndex = item.category.pages.indexOf(item.pageNum);
 
     return (
       <View
@@ -61,45 +77,31 @@ export default function FavoritesScreen() {
             <Image
               source={{ uri: thumbUrl }}
               style={styles.thumb}
-              contentFit="cover"
-              transition={200}
+              resizeMode="cover"
             />
-            <View style={[styles.numBadge, { backgroundColor: item.color }]}>
-              <Text style={styles.numText}>{item.num}</Text>
+            {/* Category color badge */}
+            <View style={[styles.catBadge, { backgroundColor: item.category.color }]}>
+              <Text style={styles.catBadgeText}>{item.category.name}</Text>
             </View>
+            {/* Unfavorite button */}
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation?.();
+                toggleFavorite(item.pageId);
+              }}
+              style={({ pressed }) => [
+                styles.favBtn,
+                pressed && { opacity: 0.6 },
+              ]}
+              hitSlop={8}
+            >
+              <MaterialIcons name="favorite" size={20} color="#FF4081" />
+            </Pressable>
           </View>
           <View style={styles.body}>
-            <View style={styles.header}>
-              <View style={styles.nameContainer}>
-                <Text style={styles.name} numberOfLines={1}>
-                  {item.name}
-                </Text>
-                <Text style={styles.nameEn} numberOfLines={1}>
-                  {item.name_en}
-                </Text>
-              </View>
-              <Pressable
-                onPress={(e) => {
-                  e.stopPropagation?.();
-                  toggleFavorite(item.id);
-                }}
-                style={({ pressed }) => [pressed && { opacity: 0.6 }]}
-                hitSlop={8}
-              >
-                <MaterialIcons name="favorite" size={20} color="#EF4444" />
-              </Pressable>
-            </View>
-            <Text style={styles.desc} numberOfLines={2}>
-              {item.desc}
+            <Text style={styles.pageLabel} numberOfLines={1}>
+              {item.category.name} - {pageIndex + 1}페이지
             </Text>
-            <View style={styles.footer}>
-              <View style={styles.pagesBadge}>
-                <Text style={styles.pagesText}>{item.pages.length}페이지</Text>
-              </View>
-              <View style={[styles.viewBtn, { backgroundColor: item.color }]}>
-                <Text style={styles.viewBtnText}>보기</Text>
-              </View>
-            </View>
           </View>
         </Pressable>
       </View>
@@ -110,24 +112,24 @@ export default function FavoritesScreen() {
     <ScreenContainer edges={["top", "left", "right"]} containerClassName="bg-background">
       <View style={styles.titleBar}>
         <Text style={styles.title}>즐겨찾기</Text>
-        {favoriteCategories.length > 0 && (
-          <Text style={styles.count}>{favoriteCategories.length}개</Text>
+        {favoriteItems.length > 0 && (
+          <Text style={styles.count}>{favoriteItems.length}개</Text>
         )}
       </View>
 
-      {favoriteCategories.length === 0 ? (
+      {favoriteItems.length === 0 ? (
         <View style={styles.emptyContainer}>
           <MaterialIcons name="favorite-border" size={48} color="#D1D5DB" />
           <Text style={styles.emptyText}>즐겨찾기가 없습니다</Text>
           <Text style={styles.emptySubtext}>
-            홈 화면에서 하트 아이콘을 눌러{"\n"}자주 보는 카테고리를 추가하세요
+            카탈로그 뷰어에서 하트 아이콘을 눌러{"\n"}자주 보는 페이지를 추가하세요
           </Text>
         </View>
       ) : (
         <FlatList
-          data={favoriteCategories}
+          data={favoriteItems}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.pageId}
           numColumns={COLUMN_COUNT}
           contentContainerStyle={styles.listContent}
           columnWrapperStyle={styles.columnWrapper}
@@ -181,78 +183,41 @@ const styles = StyleSheet.create({
   },
   thumb: {
     width: "100%",
-    height: 120,
+    height: 140,
     backgroundColor: "#EEEEEE",
   },
-  numBadge: {
+  catBadge: {
+    position: "absolute",
+    bottom: 8,
+    left: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  catBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  favBtn: {
     position: "absolute",
     top: 8,
-    left: 8,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    right: 8,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    borderRadius: 16,
+    width: 32,
+    height: 32,
     alignItems: "center",
     justifyContent: "center",
   },
-  numText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "700",
-  },
   body: {
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  nameContainer: {
-    flex: 1,
-    marginRight: 8,
-  },
-  name: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#212121",
-  },
-  nameEn: {
-    fontSize: 10,
-    color: "#757575",
-    letterSpacing: 0.5,
-    marginTop: 1,
-  },
-  desc: {
-    fontSize: 11,
-    color: "#757575",
-    lineHeight: 16,
-    marginBottom: 10,
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  pagesBadge: {
-    backgroundColor: "#F5F5F5",
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 20,
-  },
-  pagesText: {
-    fontSize: 11,
-    color: "#757575",
-  },
-  viewBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 20,
-  },
-  viewBtnText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#FFFFFF",
+  pageLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#424242",
   },
   emptyContainer: {
     flex: 1,

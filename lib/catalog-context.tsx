@@ -13,8 +13,8 @@ interface CatalogContextType {
   error: string | null;
   favorites: string[];
   refreshData: () => Promise<void>;
-  toggleFavorite: (categoryId: string) => Promise<void>;
-  isFavorite: (categoryId: string) => boolean;
+  toggleFavorite: (pageId: string) => Promise<void>;
+  isFavorite: (pageId: string) => boolean;
 }
 
 const CatalogContext = createContext<CatalogContextType>({
@@ -71,13 +71,13 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
     await loadData();
   }, [loadData]);
 
-  const handleToggleFavorite = useCallback(async (categoryId: string) => {
-    const updated = await toggleFav(categoryId);
+  const handleToggleFavorite = useCallback(async (pageId: string) => {
+    const updated = await toggleFav(pageId);
     setFavorites(updated);
   }, []);
 
   const isFavorite = useCallback(
-    (categoryId: string) => favorites.includes(categoryId),
+    (pageId: string) => favorites.includes(pageId),
     [favorites]
   );
 

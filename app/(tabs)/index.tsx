@@ -22,7 +22,7 @@ const CARD_WIDTH = (width - HORIZONTAL_PADDING * 2 - CARD_GAP) / COLUMN_COUNT;
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { catalogData, loading, error, refreshData, toggleFavorite, isFavorite } =
+  const { catalogData, loading, error, refreshData } =
     useCatalog();
 
   const handleCategoryPress = (category: Category) => {
@@ -44,9 +44,7 @@ export default function HomeScreen() {
         <CategoryCard
           category={item}
           catalogData={catalogData}
-          isFavorite={isFavorite(item.id)}
           onPress={() => handleCategoryPress(item)}
-          onToggleFavorite={() => toggleFavorite(item.id)}
         />
       </View>
     );

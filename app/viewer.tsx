@@ -21,7 +21,7 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import { useCatalog } from "@/lib/catalog-context";
-import { getImageUrl } from "@/lib/catalog-service";
+import { getImageUrl, makePageId } from "@/lib/catalog-service";
 import type { Category } from "@/lib/catalog-types";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -203,12 +203,13 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
 }
 
 export default function ViewerScreen() {
-  const { categoryId } = useLocalSearchParams<{ categoryId: string }>();
+  const { categoryId, startPage } = useLocalSearchParams<{ categoryId: string; startPage?: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { catalogData, isFavorite, toggleFavorite } = useCatalog();
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const initialIndex = startPage ? parseInt(startPage, 10) : 0;
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const mainListRef = useRef<FlatList>(null);
   const thumbListRef = useRef<FlatList>(null);
 
@@ -217,13 +218,6 @@ export default function ViewerScreen() {
   );
 
   const pages = category?.pages ?? [];
-  const isFav = categoryId ? isFavorite(categoryId) : false;
-
-  const handleToggleFavorite = useCallback(() => {
-    if (categoryId) {
-      toggleFavorite(categoryId);
-    }
-  }, [categoryId, toggleFavorite]);
 
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: any) => {
@@ -268,6 +262,8 @@ export default function ViewerScreen() {
 
   const renderMainImage = ({ item: pageNum }: { item: number }) => {
     const url = getImageUrl(catalogData, pageNum);
+    const pageId = categoryId ? makePageId(categoryId, pageNum) : "";
+    const isPageFav = isFavorite(pageId);
     return (
       <View style={{ width: SCREEN_WIDTH, height: MAIN_IMAGE_HEIGHT, position: "relative" }}>
         <ZoomableImage
@@ -275,9 +271,9 @@ export default function ViewerScreen() {
           width={SCREEN_WIDTH}
           height={MAIN_IMAGE_HEIGHT}
         />
-        {/* Favorite Heart on image top-right */}
+        {/* Favorite Heart on image top-right - per page */}
         <Pressable
-          onPress={handleToggleFavorite}
+          onPress={() => toggleFavorite(pageId)}
           style={({ pressed }) => [
             styles.imageHeartBtn,
             pressed && { opacity: 0.7 },
@@ -285,9 +281,9 @@ export default function ViewerScreen() {
         >
           <View style={styles.imageHeartBg}>
             <MaterialIcons
-              name={isFav ? "favorite" : "favorite-border"}
+              name={isPageFav ? "favorite" : "favorite-border"}
               size={26}
-              color={isFav ? "#FF4081" : "#FFFFFF"}
+              color={isPageFav ? "#FF4081" : "#FFFFFF"}
             />
           </View>
         </Pressable>
@@ -375,7 +371,8 @@ export default function ViewerScreen() {
             offset: SCREEN_WIDTH * index,
             index,
           })}
-          initialNumToRender={1}
+          initialScrollIndex={initialIndex}
+          initialNumToRender={Math.max(1, initialIndex + 1)}
           maxToRenderPerBatch={2}
           windowSize={3}
         />

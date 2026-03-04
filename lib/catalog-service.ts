@@ -3,7 +3,7 @@ import { Platform } from "react-native";
 import type { CatalogData, Category } from "./catalog-types";
 
 const CATALOG_CACHE_KEY = "@cerad_catalog_data";
-const FAVORITES_KEY = "@cerad_favorites";
+const FAVORITES_KEY = "@cerad_favorites_v2"; // v2: page-level favorites
 
 // S3 catalog.json URL (uploaded via storagePut)
 const CATALOG_S3_URL =
@@ -18,6 +18,25 @@ function getApiBaseUrl(): string {
     return origin.replace(/:\d+$/, ":3000");
   }
   return "http://localhost:3000";
+}
+
+/**
+ * Generate a unique page ID for favorites.
+ * Format: "categoryId_pageNumber"
+ * e.g., "iron_3" means page 3 in the iron category
+ */
+export function makePageId(categoryId: string, pageNum: number): string {
+  return `${categoryId}_${pageNum}`;
+}
+
+/**
+ * Parse a page ID back into categoryId and pageNum.
+ */
+export function parsePageId(pageId: string): { categoryId: string; pageNum: number } {
+  const lastUnderscore = pageId.lastIndexOf("_");
+  const categoryId = pageId.substring(0, lastUnderscore);
+  const pageNum = parseInt(pageId.substring(lastUnderscore + 1), 10);
+  return { categoryId, pageNum };
 }
 
 export function getImageUrl(catalogData: CatalogData, pageNum: number): string {
@@ -98,6 +117,10 @@ export async function getCachedCatalogData(): Promise<CatalogData | null> {
   }
 }
 
+/**
+ * Get all favorite page IDs.
+ * Each entry is a string like "categoryId_pageNumber".
+ */
 export async function getFavorites(): Promise<string[]> {
   try {
     const data = await AsyncStorage.getItem(FAVORITES_KEY);
@@ -110,13 +133,17 @@ export async function getFavorites(): Promise<string[]> {
   }
 }
 
-export async function toggleFavorite(categoryId: string): Promise<string[]> {
+/**
+ * Toggle a page-level favorite.
+ * @param pageId - Format: "categoryId_pageNumber"
+ */
+export async function toggleFavorite(pageId: string): Promise<string[]> {
   const favorites = await getFavorites();
-  const index = favorites.indexOf(categoryId);
+  const index = favorites.indexOf(pageId);
   if (index >= 0) {
     favorites.splice(index, 1);
   } else {
-    favorites.push(categoryId);
+    favorites.push(pageId);
   }
   await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
   return favorites;

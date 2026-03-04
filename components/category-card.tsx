@@ -6,17 +6,13 @@ import { getImageUrl } from "@/lib/catalog-service";
 interface CategoryCardProps {
   category: Category;
   catalogData: CatalogData;
-  isFavorite: boolean;
   onPress: () => void;
-  onToggleFavorite: () => void;
 }
 
 export function CategoryCard({
   category,
   catalogData,
-  isFavorite,
   onPress,
-  onToggleFavorite,
 }: CategoryCardProps) {
   const thumbPage = category.pages[0];
   const thumbUrl = getImageUrl(catalogData, thumbPage);
@@ -41,23 +37,6 @@ export function CategoryCard({
             <MaterialIcons name="image" size={32} color="#BDBDBD" />
           </View>
         )}
-        <Pressable
-          onPress={(e) => {
-            e.stopPropagation?.();
-            onToggleFavorite();
-          }}
-          style={({ pressed }) => [
-            styles.favBtn,
-            pressed && { opacity: 0.6 },
-          ]}
-          hitSlop={8}
-        >
-          <MaterialIcons
-            name={isFavorite ? "favorite" : "favorite-border"}
-            size={22}
-            color={isFavorite ? "#EF4444" : "rgba(255,255,255,0.8)"}
-          />
-        </Pressable>
       </View>
 
       {/* Category Name - Large & Bold */}
@@ -115,17 +94,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  favBtn: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    borderRadius: 16,
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+
   nameBar: {
     flexDirection: "row",
     alignItems: "center",
