@@ -329,7 +329,7 @@
       } catch (e1) {
         try {
           // Fallback: try S3 directly
-          const res = await fetch(catalogData?.imageUrls ? '' : 'https://d2xsxph8kpxj0f.cloudfront.net/310519663337257885/g9FMjJFMH7rkmYiPvT29tr/cerad-catalog/catalog_v2.json');
+          const res = await fetch(catalogData?.imageUrls ? '' : 'https://d2xsxph8kpxj0f.cloudfront.net/310519663337257885/g9FMjJFMH7rkmYiPvT29tr/cerad-catalog/catalog_v3.json');
           if (res.ok) catalogData = await res.json();
           else throw new Error('S3 failed');
         } catch {
