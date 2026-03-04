@@ -21,12 +21,6 @@ const MOBILE_COLUMN_COUNT = 2;
 const CARD_GAP = 12;
 const HORIZONTAL_PADDING = 16;
 
-function getWebColumnCount(width: number): number {
-  if (width >= 1200) return 4;
-  if (width >= 900) return 3;
-  return 2;
-}
-
 export default function HomeScreen() {
   const router = useRouter();
   const { catalogData, loading, error, refreshData } = useCatalog();
@@ -99,12 +93,8 @@ export default function HomeScreen() {
 
   const categories = catalogData?.categories ?? [];
 
-  /* ============ WEB: ScrollView + flexWrap grid ============ */
+  /* ============ WEB: ScrollView + CSS Grid ============ */
   if (isWeb) {
-    const webCols = getWebColumnCount(windowWidth);
-    const webCardWidth =
-      (windowWidth - HORIZONTAL_PADDING * 2 - CARD_GAP * (webCols - 1)) / webCols;
-
     return (
       <ScreenContainer edges={["top", "left", "right"]} containerClassName="bg-background">
         <ScrollView
@@ -112,9 +102,13 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={true}
         >
           <ListHeader />
-          <View style={styles.webGrid}>
+          {/* Use data attribute for CSS Grid targeting */}
+          <View
+            // @ts-ignore - data attributes work on web
+            dataSet={{ webGrid: "categories" }}
+          >
             {categories.map((item) => (
-              <View key={item.id} style={{ width: webCardWidth, marginBottom: CARD_GAP }}>
+              <View key={item.id}>
                 <CategoryCard
                   category={item}
                   catalogData={catalogData!}
@@ -285,11 +279,5 @@ const styles = StyleSheet.create({
   columnWrapper: {
     paddingHorizontal: HORIZONTAL_PADDING,
     marginBottom: CARD_GAP,
-  },
-  webGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingHorizontal: HORIZONTAL_PADDING,
-    gap: CARD_GAP,
   },
 });

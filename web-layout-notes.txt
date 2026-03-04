@@ -1,10 +1,9 @@
-Web layout check round 3:
-- Scrollbar is now visible on the right side (confirmed in screenshot)
-- 2-column grid working at current viewport width (~1000px)
-- Cards display with proper thumbnails and info
-- Need to verify 3-col and 4-col at wider viewports
-- The breakpoints are: >=1200px = 4cols, >=900px = 3cols, <900px = 2cols
-- Current viewport appears to be around 1000px so should show 3 cols but showing 2
-- Issue: the windowWidth might be the full browser width, but the gap calculation uses it
-- Actually looking at the screenshot, the content area is narrower due to the previous max-width CSS being removed but the content still appears constrained
-- The cards are 2 per row which is correct for the current effective width
+Web layout issues identified:
+1. Cards are 2 columns but each card is very wide (~480px each) - total ~960px content area
+2. Thumbnail images inside cards overflow or are misaligned - images don't fit properly in the card
+3. The card has a thumbContainer that shows 4 thumbnail images in a row, but on web they appear too large
+4. The info section (name bar, description, footer) looks okay
+5. Main issue: the category-card component was designed for mobile width (~180px per card) but now each card is ~480px wide on web
+6. Need to either: a) limit card max-width, or b) make thumbnails responsive to card width
+7. The gap between CSS approach and RN approach is causing issues - need a cleaner solution
+8. Best approach: use CSS grid in global.css for web, keep card component simple and let it fill its container

@@ -11,10 +11,8 @@ const CATALOG_S3_URL =
 
 function getApiBaseUrl(): string {
   if (Platform.OS === "web") {
-    const origin = window.location.origin;
-    // Replace any port prefix (e.g., 8080- -> 3000-)
-    const newOrigin = origin.replace(/\d+-/, "3000-");
-    return newOrigin;
+    // Use same origin - web-server.mjs proxies /api/* to backend
+    return window.location.origin;
   }
   return "http://localhost:3000";
 }
@@ -66,26 +64,33 @@ async function fetchFromS3(): Promise<CatalogData> {
 
 async function fetchFromServer(): Promise<CatalogData> {
   const baseUrl = getApiBaseUrl();
-  const response = await fetch(`${baseUrl}/api/trpc/catalog.getData`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
-  if (!response.ok) throw new Error(`Server error: ${response.status}`);
-  const json = await response.json();
-  return json.result?.data?.json ?? json.result?.data ?? json;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetch(`${baseUrl}/api/trpc/catalog.getData`, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    if (!response.ok) throw new Error(`Server error: ${response.status}`);
+    const json = await response.json();
+    return json.result?.data?.json ?? json.result?.data ?? json;
+  } catch (e) {
+    clearTimeout(timeoutId);
+    throw e;
+  }
 }
 
 export async function fetchCatalogData(): Promise<CatalogData> {
   try {
     let data: CatalogData;
 
-    // On web, use server API first (avoids CORS issues with S3)
-    // On native, try S3 first (faster, no CORS issues)
     if (Platform.OS === "web") {
+      // Web: use server API via proxy (avoids CORS issues with S3)
       try {
         data = await fetchFromServer();
       } catch {
-        // Fallback to S3 if server fails
         try {
           data = await fetchFromS3();
         } catch {
@@ -93,11 +98,10 @@ export async function fetchCatalogData(): Promise<CatalogData> {
         }
       }
     } else {
-      // Native: try S3 first
+      // Native: try S3 first (faster, no CORS issues)
       try {
         data = await fetchFromS3();
       } catch {
-        // Fallback to server API
         try {
           data = await fetchFromServer();
         } catch {
