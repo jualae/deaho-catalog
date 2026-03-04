@@ -36,10 +36,13 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
   const translateY = useSharedValue(0);
   const savedTranslateX = useSharedValue(0);
   const savedTranslateY = useSharedValue(0);
-  // Track the initial focal point when pinch begins
+  // Track the initial focal point when pinch begins (in image-local coordinates)
   const pinchFocalX = useSharedValue(0);
   const pinchFocalY = useSharedValue(0);
-  const isPinchActive = useSharedValue(false);
+  // Track the scale at the very start of this pinch gesture (snapshot of savedScale)
+  const pinchStartScale = useSharedValue(1);
+  const pinchStartTx = useSharedValue(0);
+  const pinchStartTy = useSharedValue(0);
   const [isZoomed, setIsZoomed] = useState(false);
 
   const updateZoomState = useCallback((zoomed: boolean) => {
@@ -59,25 +62,30 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
 
   const pinchGesture = Gesture.Pinch()
     .onBegin((e) => {
-      // Capture the initial focal point at pinch start
+      // Snapshot the current saved state at the start of this pinch
+      pinchStartScale.value = savedScale.value;
+      pinchStartTx.value = savedTranslateX.value;
+      pinchStartTy.value = savedTranslateY.value;
+
+      // Capture the focal point relative to the container center
       pinchFocalX.value = e.focalX - width / 2;
       pinchFocalY.value = e.focalY - height / 2;
-      isPinchActive.value = true;
     })
     .onUpdate((e) => {
-      // Calculate new scale
-      const newScale = Math.min(Math.max(savedScale.value * e.scale, 1), 5);
+      // Calculate new scale based on the scale at pinch start
+      const newScale = Math.min(Math.max(pinchStartScale.value * e.scale, 1), 5);
 
-      // Use the initial focal point (captured at onBegin) so it stays stable
+      // Use the fixed focal point captured at onBegin
       const focalX = pinchFocalX.value;
       const focalY = pinchFocalY.value;
 
-      // How much scale changed from the saved scale
-      const scaleDiff = newScale / savedScale.value;
+      // How much scale changed from the pinch start scale
+      const scaleDiff = newScale / pinchStartScale.value;
 
       // Translate so that the focal point stays under the fingers
-      const newTx = savedTranslateX.value - focalX * (scaleDiff - 1);
-      const newTy = savedTranslateY.value - focalY * (scaleDiff - 1);
+      // Uses pinchStart values (not saved values that might change mid-gesture)
+      const newTx = pinchStartTx.value - focalX * (scaleDiff - 1);
+      const newTy = pinchStartTy.value - focalY * (scaleDiff - 1);
 
       const clamped = clampTranslation(newTx, newTy, newScale);
 
@@ -86,7 +94,6 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
       translateY.value = clamped.y;
     })
     .onEnd(() => {
-      isPinchActive.value = false;
       if (scale.value < 1.1) {
         // Snap back to 1x
         scale.value = withTiming(1, { duration: 200 });
@@ -97,7 +104,7 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
         savedTranslateY.value = 0;
         runOnJS(updateZoomState)(false);
       } else {
-        // Save the current state exactly as-is — no jump
+        // Save the current state exactly as-is — no jump on next pinch
         savedScale.value = scale.value;
         savedTranslateX.value = translateX.value;
         savedTranslateY.value = translateY.value;
@@ -191,7 +198,7 @@ export default function ViewerScreen() {
   const { categoryId } = useLocalSearchParams<{ categoryId: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { catalogData } = useCatalog();
+  const { catalogData, isFavorite, toggleFavorite } = useCatalog();
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const mainListRef = useRef<FlatList>(null);
@@ -202,6 +209,13 @@ export default function ViewerScreen() {
   );
 
   const pages = category?.pages ?? [];
+  const isFav = categoryId ? isFavorite(categoryId) : false;
+
+  const handleToggleFavorite = useCallback(() => {
+    if (categoryId) {
+      toggleFavorite(categoryId);
+    }
+  }, [categoryId, toggleFavorite]);
 
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: any) => {
@@ -293,6 +307,20 @@ export default function ViewerScreen() {
         <Text style={styles.catName} numberOfLines={1}>
           {category.name}
         </Text>
+        {/* Favorite Heart Button */}
+        <Pressable
+          onPress={handleToggleFavorite}
+          style={({ pressed }) => [
+            styles.favBtn,
+            pressed && { opacity: 0.7 },
+          ]}
+        >
+          <MaterialIcons
+            name={isFav ? "favorite" : "favorite-border"}
+            size={24}
+            color={isFav ? "#FF4081" : "#999999"}
+          />
+        </Pressable>
         <View style={styles.indicator}>
           <Text style={styles.indicatorText}>
             {currentIndex + 1} / {pages.length}
@@ -397,6 +425,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "800",
     color: "#FFFFFF",
+  },
+  favBtn: {
+    padding: 4,
   },
   indicator: {
     backgroundColor: "#333333",
