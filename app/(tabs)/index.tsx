@@ -40,8 +40,7 @@ export default function HomeScreen() {
   const ListHeader = () => (
     <View>
       <View style={styles.headerBar}>
-        <Image source={ceradLogo} style={styles.headerLogoImg} contentFit="contain" />
-        <View style={styles.headerTitleContainer}>
+        <View>
           <Text style={styles.headerTitle}>CERAD · 대호상사</Text>
           <Text style={styles.headerSubtitle}>전문 미용 제품 카탈로그</Text>
         </View>
@@ -58,7 +57,7 @@ export default function HomeScreen() {
         </View>
         <Image source={ceradLogo} style={styles.heroLogo} contentFit="contain" />
         <Text style={styles.heroSubtitle}>
-          대호상사 · Hair & Murin 전문 미용용품 종합 카탈로그
+          대호상사 · 전문 미용용품 종합 카탈로그
         </Text>
       </LinearGradient>
 
@@ -219,7 +218,7 @@ const styles = StyleSheet.create({
   },
   hero: {
     paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingVertical: 24,
     alignItems: "center",
   },
   heroBadge: {
