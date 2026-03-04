@@ -13,6 +13,13 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from "react-native-reanimated";
 import { useCatalog } from "@/lib/catalog-context";
 import { getImageUrl } from "@/lib/catalog-service";
 import type { Category } from "@/lib/catalog-types";
@@ -21,6 +28,106 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const HEADER_HEIGHT = 44;
 const THUMB_STRIP_HEIGHT = 80;
 const MAIN_IMAGE_HEIGHT = SCREEN_HEIGHT - HEADER_HEIGHT - THUMB_STRIP_HEIGHT - 60;
+
+function ZoomableImage({ uri, width, height }: { uri: string; width: number; height: number }) {
+  const scale = useSharedValue(1);
+  const savedScale = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const savedTranslateX = useSharedValue(0);
+  const savedTranslateY = useSharedValue(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+
+  const updateZoomState = useCallback((zoomed: boolean) => {
+    setIsZoomed(zoomed);
+  }, []);
+
+  const pinchGesture = Gesture.Pinch()
+    .onUpdate((e) => {
+      const newScale = savedScale.value * e.scale;
+      scale.value = Math.min(Math.max(newScale, 1), 5);
+    })
+    .onEnd(() => {
+      if (scale.value < 1.1) {
+        scale.value = withTiming(1, { duration: 200 });
+        savedScale.value = 1;
+        translateX.value = withTiming(0, { duration: 200 });
+        translateY.value = withTiming(0, { duration: 200 });
+        savedTranslateX.value = 0;
+        savedTranslateY.value = 0;
+        runOnJS(updateZoomState)(false);
+      } else {
+        savedScale.value = scale.value;
+        runOnJS(updateZoomState)(true);
+      }
+    });
+
+  const panGesture = Gesture.Pan()
+    .minPointers(1)
+    .onUpdate((e) => {
+      if (savedScale.value > 1) {
+        const maxX = (width * (savedScale.value - 1)) / 2;
+        const maxY = (height * (savedScale.value - 1)) / 2;
+        translateX.value = Math.min(
+          Math.max(savedTranslateX.value + e.translationX, -maxX),
+          maxX
+        );
+        translateY.value = Math.min(
+          Math.max(savedTranslateY.value + e.translationY, -maxY),
+          maxY
+        );
+      }
+    })
+    .onEnd(() => {
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+    });
+
+  const doubleTapGesture = Gesture.Tap()
+    .numberOfTaps(2)
+    .onEnd(() => {
+      if (savedScale.value > 1) {
+        scale.value = withTiming(1, { duration: 250 });
+        savedScale.value = 1;
+        translateX.value = withTiming(0, { duration: 250 });
+        translateY.value = withTiming(0, { duration: 250 });
+        savedTranslateX.value = 0;
+        savedTranslateY.value = 0;
+        runOnJS(updateZoomState)(false);
+      } else {
+        scale.value = withTiming(2.5, { duration: 250 });
+        savedScale.value = 2.5;
+        runOnJS(updateZoomState)(true);
+      }
+    });
+
+  const composed = Gesture.Simultaneous(
+    pinchGesture,
+    Gesture.Race(doubleTapGesture, panGesture)
+  );
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
+
+  return (
+    <GestureDetector gesture={composed}>
+      <Animated.View style={[{ width, height, alignItems: "center", justifyContent: "center" }]}>
+        <Animated.View style={animatedStyle}>
+          <Image
+            source={{ uri }}
+            style={{ width: width - 20, height: height - 20 }}
+            resizeMode="contain"
+          />
+        </Animated.View>
+      </Animated.View>
+    </GestureDetector>
+  );
+}
 
 export default function ViewerScreen() {
   const { categoryId } = useLocalSearchParams<{ categoryId: string }>();
@@ -82,13 +189,11 @@ export default function ViewerScreen() {
   const renderMainImage = ({ item: pageNum }: { item: number }) => {
     const url = getImageUrl(catalogData, pageNum);
     return (
-      <View style={[styles.mainImageWrapper, { width: SCREEN_WIDTH, height: MAIN_IMAGE_HEIGHT }]}>
-        <Image
-          source={{ uri: url }}
-          style={{ width: SCREEN_WIDTH - 20, height: MAIN_IMAGE_HEIGHT - 20 }}
-          resizeMode="contain"
-        />
-      </View>
+      <ZoomableImage
+        uri={url}
+        width={SCREEN_WIDTH}
+        height={MAIN_IMAGE_HEIGHT}
+      />
     );
   };
 
@@ -271,10 +376,6 @@ const styles = StyleSheet.create({
   mainArea: {
     flex: 1,
     position: "relative",
-  },
-  mainImageWrapper: {
-    alignItems: "center",
-    justifyContent: "center",
   },
   navArrow: {
     position: "absolute",

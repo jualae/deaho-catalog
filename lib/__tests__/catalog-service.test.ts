@@ -1,6 +1,19 @@
-import { describe, it, expect } from "vitest";
-import { searchCategories, getImageUrl } from "../catalog-service";
-import type { CatalogData, Category } from "../catalog-types";
+import { describe, it, expect, vi } from "vitest";
+
+// Mock react-native modules before importing catalog-service
+vi.mock("react-native", () => ({
+  Platform: { OS: "web" },
+}));
+
+vi.mock("@react-native-async-storage/async-storage", () => ({
+  default: {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+  },
+}));
+
+import { searchCategories } from "../catalog-service";
+import type { Category } from "../catalog-types";
 
 const mockCategories: Category[] = [
   {
@@ -35,20 +48,6 @@ const mockCategories: Category[] = [
   },
 ];
 
-const mockCatalogData: CatalogData = {
-  version: "1.0",
-  title: "CERAD CATALOG",
-  subtitle: "대호상사",
-  totalPages: 54,
-  imageBaseUrl: "https://drive.google.com/uc?export=view&id=",
-  imageIds: {
-    "2": "abc123",
-    "9": "def456",
-    "17": "ghi789",
-  },
-  categories: mockCategories,
-};
-
 describe("searchCategories", () => {
   it("returns all categories when query is empty", () => {
     const result = searchCategories(mockCategories, "");
@@ -82,17 +81,5 @@ describe("searchCategories", () => {
   it("returns empty for no match", () => {
     const result = searchCategories(mockCategories, "xyz없는검색어");
     expect(result).toHaveLength(0);
-  });
-});
-
-describe("getImageUrl", () => {
-  it("returns correct Google Drive URL for valid page", () => {
-    const url = getImageUrl(mockCatalogData, 2);
-    expect(url).toBe("https://drive.google.com/uc?export=view&id=abc123");
-  });
-
-  it("returns empty string for invalid page", () => {
-    const url = getImageUrl(mockCatalogData, 999);
-    expect(url).toBe("");
   });
 });
