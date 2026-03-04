@@ -42,7 +42,7 @@ const MAIN_IMAGE_HEIGHT = SCREEN_HEIGHT - HEADER_HEIGHT - THUMB_STRIP_HEIGHT - 6
  * Then the new translate to keep that image point under the finger:
  *   newTranslate = screenFocal - containerCenter - imageFocal * newScale
  */
-function ZoomableImage({ uri, width, height }: { uri: string; width: number; height: number }) {
+function ZoomableImage({ uri, width, height, onZoomChange }: { uri: string; width: number; height: number; onZoomChange?: (zoomed: boolean) => void }) {
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -63,7 +63,8 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
 
   const updateZoomState = useCallback((zoomed: boolean) => {
     setIsZoomed(zoomed);
-  }, []);
+    onZoomChange?.(zoomed);
+  }, [onZoomChange]);
 
   const clampTx = (tx: number, s: number) => {
     "worklet";
@@ -124,6 +125,7 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
 
   const panGesture = Gesture.Pan()
     .minPointers(1)
+    .enabled(isZoomed)
     .onUpdate((e) => {
       if (savedScale.value > 1) {
         translateX.value = clampTx(
@@ -210,6 +212,7 @@ export default function ViewerScreen() {
 
   const initialIndex = startPage ? parseInt(startPage, 10) : 0;
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [isAnyZoomed, setIsAnyZoomed] = useState(false);
   const mainListRef = useRef<FlatList>(null);
   const thumbListRef = useRef<FlatList>(null);
 
@@ -270,6 +273,7 @@ export default function ViewerScreen() {
           uri={url}
           width={SCREEN_WIDTH}
           height={MAIN_IMAGE_HEIGHT}
+          onZoomChange={setIsAnyZoomed}
         />
         {/* Favorite Heart on image top-right - per page */}
         <Pressable
@@ -364,6 +368,7 @@ export default function ViewerScreen() {
           keyExtractor={(item) => `page-${item}`}
           horizontal
           pagingEnabled
+          scrollEnabled={!isAnyZoomed}
           showsHorizontalScrollIndicator={false}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
