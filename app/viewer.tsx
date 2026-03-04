@@ -407,11 +407,11 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: "#1A1A1A",
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 12,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    height: HEADER_HEIGHT,
+    minHeight: HEADER_HEIGHT,
     borderBottomWidth: 1,
     borderBottomColor: "#333333",
   },
@@ -428,6 +428,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 13,
     fontWeight: "600",
+    lineHeight: 18,
   },
   catName: {
     flex: 1,
@@ -472,7 +473,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 4,
     overflow: "hidden",
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: "transparent",
   },
   thumbImage: {

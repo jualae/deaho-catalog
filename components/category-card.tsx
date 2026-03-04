@@ -1,5 +1,6 @@
 import { Text, View, Pressable, StyleSheet, Image } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { LinearGradient } from "expo-linear-gradient";
 import type { Category, CatalogData } from "@/lib/catalog-types";
 import { getImageUrl } from "@/lib/catalog-service";
 
@@ -39,15 +40,27 @@ export function CategoryCard({
         )}
       </View>
 
-      {/* Category Name - Large & Bold */}
-      <View style={[styles.nameBar, { backgroundColor: category.color }]}>
+      {/* Category Name - Large & Bold with gradient edges */}
+      <LinearGradient
+        colors={[
+          "transparent",
+          category.color,
+          category.color,
+          category.color,
+          "transparent",
+        ]}
+        locations={[0, 0.15, 0.5, 0.85, 1]}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={styles.nameBar}
+      >
         <View style={styles.numBadge}>
           <Text style={styles.numText}>{category.num}</Text>
         </View>
         <Text style={styles.name} numberOfLines={1}>
           {category.name}
         </Text>
-      </View>
+      </LinearGradient>
 
       <View style={styles.body}>
         <Text style={styles.nameEn} numberOfLines={1}>
