@@ -308,6 +308,7 @@ export default function ViewerScreen() {
           style={styles.thumbImage}
           resizeMode="cover"
         />
+        {!isActive && <View style={styles.thumbDimOverlay} />}
       </Pressable>
     );
   };
@@ -479,6 +480,10 @@ const styles = StyleSheet.create({
   thumbImage: {
     width: "100%",
     height: "100%",
+  },
+  thumbDimOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.45)",
   },
   mainArea: {
     flex: 1,
