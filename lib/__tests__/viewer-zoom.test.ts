@@ -62,6 +62,43 @@ describe("ZoomableImage zoom logic", () => {
     expect(result).toBe(-200);
   });
 
+  // Focal point zoom logic tests
+  function focalPinchTranslation(
+    savedTx: number,
+    focalX: number,
+    containerWidth: number,
+    savedScale: number,
+    newScale: number
+  ): number {
+    const focal = focalX - containerWidth / 2;
+    const scaleDiff = newScale / savedScale;
+    return savedTx - focal * (scaleDiff - 1);
+  }
+
+  it("should offset translation toward focal point when zooming", () => {
+    // Pinching at right side (focalX=300 on 400px container)
+    // focal = 300 - 200 = 100
+    // scaleDiff = 2 / 1 = 2
+    // tx = 0 - 100 * (2 - 1) = -100 (shifts image left so right side stays under fingers)
+    const tx = focalPinchTranslation(0, 300, 400, 1, 2);
+    expect(tx).toBe(-100);
+  });
+
+  it("should offset translation toward left focal point when zooming", () => {
+    // Pinching at left side (focalX=100 on 400px container)
+    // focal = 100 - 200 = -100
+    // scaleDiff = 2 / 1 = 2
+    // tx = 0 - (-100) * (2 - 1) = 100 (shifts image right so left side stays under fingers)
+    const tx = focalPinchTranslation(0, 100, 400, 1, 2);
+    expect(tx).toBe(100);
+  });
+
+  it("should have zero offset when pinching at center", () => {
+    // Pinching at center (focalX=200 on 400px container)
+    const tx = focalPinchTranslation(0, 200, 400, 1, 2);
+    expect(tx).toBe(0);
+  });
+
   it("double tap should toggle between 1x and 2.5x", () => {
     // First double tap: zoom in
     let scale = 1;

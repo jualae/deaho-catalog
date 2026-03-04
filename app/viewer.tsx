@@ -36,19 +36,57 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
   const translateY = useSharedValue(0);
   const savedTranslateX = useSharedValue(0);
   const savedTranslateY = useSharedValue(0);
+  // Store the focal point offset accumulated during pinch
+  const focalOffsetX = useSharedValue(0);
+  const focalOffsetY = useSharedValue(0);
   const [isZoomed, setIsZoomed] = useState(false);
 
   const updateZoomState = useCallback((zoomed: boolean) => {
     setIsZoomed(zoomed);
   }, []);
 
+  // Helper to clamp translation within bounds
+  const clampTranslation = (tx: number, ty: number, s: number) => {
+    "worklet";
+    const maxX = (width * (s - 1)) / 2;
+    const maxY = (height * (s - 1)) / 2;
+    return {
+      x: Math.min(Math.max(tx, -maxX), maxX),
+      y: Math.min(Math.max(ty, -maxY), maxY),
+    };
+  };
+
   const pinchGesture = Gesture.Pinch()
+    .onBegin((e) => {
+      // Reset focal offset at the start of each pinch
+      focalOffsetX.value = 0;
+      focalOffsetY.value = 0;
+    })
     .onUpdate((e) => {
-      const newScale = savedScale.value * e.scale;
-      scale.value = Math.min(Math.max(newScale, 1), 5);
+      // Calculate new scale
+      const newScale = Math.min(Math.max(savedScale.value * e.scale, 1), 5);
+
+      // Focal point relative to the center of the container
+      const focalX = e.focalX - width / 2;
+      const focalY = e.focalY - height / 2;
+
+      // How much scale changed from the saved scale
+      const scaleDiff = newScale / savedScale.value;
+
+      // Translate so that the focal point stays under the fingers:
+      // newTranslate = savedTranslate - focal * (scaleDiff - 1)
+      const newTx = savedTranslateX.value - focalX * (scaleDiff - 1);
+      const newTy = savedTranslateY.value - focalY * (scaleDiff - 1);
+
+      const clamped = clampTranslation(newTx, newTy, newScale);
+
+      scale.value = newScale;
+      translateX.value = clamped.x;
+      translateY.value = clamped.y;
     })
     .onEnd(() => {
       if (scale.value < 1.1) {
+        // Snap back to 1x
         scale.value = withTiming(1, { duration: 200 });
         savedScale.value = 1;
         translateX.value = withTiming(0, { duration: 200 });
@@ -58,6 +96,8 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
         runOnJS(updateZoomState)(false);
       } else {
         savedScale.value = scale.value;
+        savedTranslateX.value = translateX.value;
+        savedTranslateY.value = translateY.value;
         runOnJS(updateZoomState)(true);
       }
     });
@@ -85,8 +125,9 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
 
   const doubleTapGesture = Gesture.Tap()
     .numberOfTaps(2)
-    .onEnd(() => {
+    .onEnd((e) => {
       if (savedScale.value > 1) {
+        // Zoom out to 1x
         scale.value = withTiming(1, { duration: 250 });
         savedScale.value = 1;
         translateX.value = withTiming(0, { duration: 250 });
@@ -95,8 +136,22 @@ function ZoomableImage({ uri, width, height }: { uri: string; width: number; hei
         savedTranslateY.value = 0;
         runOnJS(updateZoomState)(false);
       } else {
-        scale.value = withTiming(2.5, { duration: 250 });
-        savedScale.value = 2.5;
+        // Zoom in to 2.5x centered on the tap point
+        const targetScale = 2.5;
+        const focalX = e.x - width / 2;
+        const focalY = e.y - height / 2;
+
+        // Translate so the tapped point stays in place
+        const newTx = -focalX * (targetScale - 1);
+        const newTy = -focalY * (targetScale - 1);
+        const clamped = clampTranslation(newTx, newTy, targetScale);
+
+        scale.value = withTiming(targetScale, { duration: 250 });
+        savedScale.value = targetScale;
+        translateX.value = withTiming(clamped.x, { duration: 250 });
+        translateY.value = withTiming(clamped.y, { duration: 250 });
+        savedTranslateX.value = clamped.x;
+        savedTranslateY.value = clamped.y;
         runOnJS(updateZoomState)(true);
       }
     });
