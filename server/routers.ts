@@ -3,8 +3,17 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 
+const CATALOG_JSON_URL = "https://drive.usercontent.google.com/download?id=1zy_0PRlXui0oEdM37qG0SjGBJpK8UfEE&export=view";
+
+let catalogCache: { data: string; timestamp: number } | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Image proxy endpoint will be registered in Express directly
+export function getImageProxyUrl(fileId: string): string {
+  return `/api/image-proxy/${fileId}`;
+}
+
 export const appRouter = router({
-  // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
@@ -17,12 +26,20 @@ export const appRouter = router({
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  catalog: router({
+    getData: publicProcedure.query(async () => {
+      // Return cached data if fresh
+      if (catalogCache && Date.now() - catalogCache.timestamp < CACHE_TTL) {
+        return JSON.parse(catalogCache.data);
+      }
+      // Fetch from Google Drive
+      const response = await fetch(CATALOG_JSON_URL);
+      if (!response.ok) throw new Error(`Failed to fetch catalog: ${response.status}`);
+      const text = await response.text();
+      catalogCache = { data: text, timestamp: Date.now() };
+      return JSON.parse(text);
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

@@ -60,6 +60,31 @@ async function startServer() {
     res.json({ ok: true, timestamp: Date.now() });
   });
 
+  // Image proxy for Google Drive images
+  app.get("/api/image-proxy/:fileId", async (req, res) => {
+    try {
+      const { fileId } = req.params;
+      const gdriveUrl = `https://drive.usercontent.google.com/download?id=${fileId}&export=view`;
+      const response = await fetch(gdriveUrl, { redirect: "follow" });
+      if (!response.ok) {
+        res.status(response.status).send("Image not found");
+        return;
+      }
+      const contentType = response.headers.get("content-type") || "image/jpeg";
+      const buffer = Buffer.from(await response.arrayBuffer());
+      // Set comprehensive headers for cross-origin image loading
+      res.setHeader("Content-Type", contentType);
+      res.setHeader("Content-Length", buffer.length);
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      res.removeHeader("Content-Disposition");
+      res.status(200).send(buffer);
+    } catch (error) {
+      res.status(500).send("Proxy error");
+    }
+  });
+
   app.use(
     "/api/trpc",
     createExpressMiddleware({

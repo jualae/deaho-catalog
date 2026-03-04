@@ -1,0 +1,232 @@
+{
+  "version": "1.0",
+  "title": "CERAD CATALOG",
+  "subtitle": "대호상사 · Hair & Murin 전문 미용용품 종합 카탈로그",
+  "totalPages": 54,
+  "categories": [
+    {
+      "id": "iron",
+      "num": 1,
+      "name": "아이롱 / 매직기 / 고데기",
+      "name_en": "IRON / MAGIC / CURLER",
+      "icon": "🔥",
+      "color": "#C0392B",
+      "pages": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "desc": "세라드 골드 아이롱 등 10가지 사이즈 헤어스타일링 제품"
+    },
+    {
+      "id": "brush",
+      "num": 2,
+      "name": "브러시",
+      "name_en": "BRUSH",
+      "icon": "🪮",
+      "color": "#8E44AD",
+      "pages": [
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "desc": "히트 롱 브러시, 엔틱 열판 브러시 등 다양한 헤어 브러시"
+    },
+    {
+      "id": "comb",
+      "num": 3,
+      "name": "빗",
+      "name_en": "COMB",
+      "icon": "⚡",
+      "color": "#2980B9",
+      "pages": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26
+      ],
+      "desc": "카본 빗 스타일, 컷트빗, 일제 커트빗 등 전문가용 빗"
+    },
+    {
+      "id": "rod",
+      "num": 4,
+      "name": "롯드",
+      "name_en": "ROD",
+      "icon": "🎨",
+      "color": "#16A085",
+      "pages": [
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "desc": "세라믹, 음이온, 웨이브, 텐션볼룸업 등 다양한 롯드"
+    },
+    {
+      "id": "pin",
+      "num": 5,
+      "name": "핀셋",
+      "name_en": "PIN / CLIP",
+      "icon": "📎",
+      "color": "#D35400",
+      "pages": [
+        32,
+        33,
+        34
+      ],
+      "desc": "대핀, 핀컬핀, PVC핀셋, 실리콘 핀셋 등 다양한 핀셋류"
+    },
+    {
+      "id": "tissue",
+      "num": 6,
+      "name": "파지",
+      "name_en": "TISSUE / PAPER",
+      "icon": "📄",
+      "color": "#27AE60",
+      "pages": [
+        34,
+        35
+      ],
+      "desc": "개나리파지, 셋팅파지, 얼굴마스크 등 미용 파지류"
+    },
+    {
+      "id": "misc",
+      "num": 7,
+      "name": "잡화",
+      "name_en": "ACCESSORIES",
+      "icon": "🧴",
+      "color": "#1A237E",
+      "pages": [
+        35,
+        36,
+        37,
+        38,
+        39
+      ],
+      "desc": "염색볼, S/H, 분무기, 면도기, 헤어쿠션 등 미용 잡화"
+    },
+    {
+      "id": "electric",
+      "num": 8,
+      "name": "전자기기",
+      "name_en": "ELECTRIC",
+      "icon": "⚡",
+      "color": "#F39C12",
+      "pages": [
+        40,
+        41
+      ],
+      "desc": "전기모자, 바리깡, 유환매직기, 소독장 등 전기 미용기기"
+    },
+    {
+      "id": "wig",
+      "num": 9,
+      "name": "가발",
+      "name_en": "WIG / HAIR",
+      "icon": "💇",
+      "color": "#5D4037",
+      "pages": [
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52
+      ],
+      "desc": "인모 붙임머리, 헤어탑피스, 가발 등 전문가용 헤어 제품"
+    },
+    {
+      "id": "basicset",
+      "num": 10,
+      "name": "기본 재료 세트",
+      "name_en": "BASIC SET",
+      "icon": "📦",
+      "color": "#546E7A",
+      "pages": [
+        51,
+        52,
+        53
+      ],
+      "desc": "위생복, 마네킹, 가위, 롤러, 분무기 등 미용 기초재료 세트"
+    }
+  ],
+  "imageBaseUrl": "https://drive.google.com/uc?export=view&id=",
+  "imageIds": {
+    "1": "1XjV_nJgcC1Lh5jPW581AzlcmRTXvU7gn",
+    "2": "10jqT2h9pMMtlLX1Zjqtoyaz3RvZiWITC",
+    "3": "1FZjQuWYp1MwLFuOPCraxGac8hefBNGts",
+    "4": "1MfIWcg1bGAK3ZZaPrTG2n1d71-zqOY0p",
+    "5": "1sBJ6ERYIgz71wBPR0-YFKOyprh6VX-DD",
+    "6": "1DWXN_HByOJ7TcK7KDgC9TgLGqUM3o-yl",
+    "7": "1sX6Nj0OoXlgP5Tf1duaQClGNV9YcHV4W",
+    "8": "1RfEuTsBv3dBIf5S8LsvEkLdove73Z4Sj",
+    "9": "1Kihq9M6-SIU_S4KJVxS36l_dkGcpS81P",
+    "10": "1mWv94yBG38CLv_R2L6x7NoUqkGqfqNJp",
+    "11": "1AUqW4N61Z0WjWnLl6JHflUNdWgZV0Fhg",
+    "12": "1Y8Ic-EnhvkabCjxw15mjFJl6dADlCKdX",
+    "13": "14-n4edh_51-o4BbAsh1RwoynCYEX5N5Q",
+    "14": "1gD4J_EXQB_MrJS-xhvDzGq9FB2vfabj4",
+    "15": "17YVaH7cej1d0raV-KGbQxoO4K2NuYXf4",
+    "16": "1-zicDKW55FdLAsfRLKt1NkkzczRFKPUW",
+    "17": "15XLr94q0m3U54uTZZpQF2lDPpqltHPbn",
+    "18": "1pfZiRpM_78tq-SRXHF7EDVXAPeCZJ8Y7",
+    "19": "1LH8jF18KAoNIcWIgX_8Mg8RuWIxVn_a7",
+    "20": "1UWh845RGOGaFQbro6KPuU6VNYjLCw0oM",
+    "21": "1Kk21XQo23IakfR7CEKnJDI1xDIYopTSJ",
+    "22": "1z8PVk0Xxq8THMT0lq-bbtNud29s1F3E8",
+    "23": "1NE5LI_aIB2OGdnBo2ZHX7yMO48piEove",
+    "24": "1TBTwpDX9iB2TmymDNJ4FTg6aq0vv6i2C",
+    "25": "1RyenqDo7cuDaqkIvfXVXR6mXQOyW4fZ_",
+    "26": "1f5rO5Y3pccsPK2J71aHEkapf6xIJ6-uY",
+    "27": "1mPYV2LeSQNNX7CKpBJHSJALaDdv8zNeY",
+    "28": "12CuJy1ABYJJ0DM2dcXbA-FCtg8NZQSU6",
+    "29": "1lFcC9OgFmAImibxhUWHyRW9Tj891b_Pp",
+    "30": "1aj_v_o8O1U64hn2vvkOvyE-aLRrwzyoP",
+    "31": "1-DolOFVyXU7JO6CSjf4NnIWlrtI5slnI",
+    "32": "14VXtjVDsI7lniKjzODdG7ijhnqP-QH6_",
+    "33": "1jOxVdFzuCuhELplp84xp2Bt-0vRef9_T",
+    "34": "1OZwMWe7BFnpSRZe1cntK0cdlP6VL3s7T",
+    "35": "1rHXTZbcNFjmnIf8kjAZRwu9M2e47AAAW",
+    "36": "1wFIE7ONtQDBIj4f6A1fnC8oMsKWGvbxT",
+    "37": "1fvxM8T6ajoXJD8aWxI6cPfefKMt86dSC",
+    "38": "1ic9Nd0zrmDznoS-MnxiiEE_cA417g5hk",
+    "39": "1e9EMJK6yYS_eWNJGfWR_rGtG_dfMQcjm",
+    "40": "1aS7eBrPN-L3vsK9-dk1hU93ORXUP1Psl",
+    "41": "18E-o2YKEFk-wr_o1h7OWdsA6Jm0Nyq8J",
+    "42": "1F3mIA40tSca_ZwYdCAPuV5Nuw6fLPv_X",
+    "43": "1UDXUEncRkmCtaJcHG07yNzFpTcyOwD0H",
+    "44": "1FQTn9YXphLjK2ozr4ROb-Aqz7SLTpZ0s",
+    "45": "1m96kDTq2nco-Je2ukpIiAFH0XrURnXvq",
+    "46": "1CVBRStDa9cYI3VMmE_3UiAhX9nM6UgR8",
+    "47": "1XPcVDuFTj1hESGRt2WXUoV_URGqwyUdD",
+    "48": "1JIJcmTiWqrvuV_wznfg_bTh49c09nVku",
+    "49": "1mpMIIC-8FNpEhqaYoVhxYc0kdxLufB2k",
+    "50": "150F5PWb-ZTx0cJFX2prIOyHbpI3rnEBY",
+    "51": "1RJg7cG1z9I5v8HL5yBPxKNo72oPWzZEt",
+    "52": "1KGpiWgHb6TjLM4jhiWLxw67j0v8Y9AaZ",
+    "53": "1fNAniKnzCF93P9ivksrm_7OlLsvFgCD2",
+    "54": "1RV4g7O0Rb_NDiI0ktx5fX4w8ENpZk-sO"
+  }
+}

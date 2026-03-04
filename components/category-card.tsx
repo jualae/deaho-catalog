@@ -1,5 +1,4 @@
-import { Text, View, Pressable, StyleSheet } from "react-native";
-import { Image } from "expo-image";
+import { Text, View, Pressable, StyleSheet, Image } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import type { Category, CatalogData } from "@/lib/catalog-types";
 import { getImageUrl } from "@/lib/catalog-service";
@@ -31,13 +30,17 @@ export function CategoryCard({
       ]}
     >
       <View style={styles.thumbContainer}>
-        <Image
-          source={{ uri: thumbUrl }}
-          style={styles.thumb}
-          contentFit="cover"
-          transition={200}
-          placeholder={undefined}
-        />
+        {thumbUrl ? (
+          <Image
+            source={{ uri: thumbUrl }}
+            style={styles.thumb}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[styles.thumb, styles.thumbPlaceholder]}>
+            <MaterialIcons name="image" size={32} color="#BDBDBD" />
+          </View>
+        )}
         <View style={[styles.numBadge, { backgroundColor: category.color }]}>
           <Text style={styles.numText}>{category.num}</Text>
         </View>
@@ -104,6 +107,10 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 120,
     backgroundColor: "#EEEEEE",
+  },
+  thumbPlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
   },
   numBadge: {
     position: "absolute",

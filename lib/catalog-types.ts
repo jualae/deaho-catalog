@@ -16,5 +16,6 @@ export interface CatalogData {
   totalPages: number;
   imageBaseUrl: string;
   imageIds: Record<string, string>;
+  imageUrls?: Record<string, string>;
   categories: Category[];
 }

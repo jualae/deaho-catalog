@@ -7,9 +7,9 @@ import {
   ActivityIndicator,
   StyleSheet,
   Dimensions,
+  Image,
   Platform,
 } from "react-native";
-import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -18,6 +18,9 @@ import { getImageUrl } from "@/lib/catalog-service";
 import type { Category } from "@/lib/catalog-types";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const HEADER_HEIGHT = 44;
+const THUMB_STRIP_HEIGHT = 80;
+const MAIN_IMAGE_HEIGHT = SCREEN_HEIGHT - HEADER_HEIGHT - THUMB_STRIP_HEIGHT - 60;
 
 export default function ViewerScreen() {
   const { categoryId } = useLocalSearchParams<{ categoryId: string }>();
@@ -79,12 +82,11 @@ export default function ViewerScreen() {
   const renderMainImage = ({ item: pageNum }: { item: number }) => {
     const url = getImageUrl(catalogData, pageNum);
     return (
-      <View style={styles.mainImageWrapper}>
+      <View style={[styles.mainImageWrapper, { width: SCREEN_WIDTH, height: MAIN_IMAGE_HEIGHT }]}>
         <Image
           source={{ uri: url }}
-          style={styles.mainImage}
-          contentFit="contain"
-          transition={150}
+          style={{ width: SCREEN_WIDTH - 20, height: MAIN_IMAGE_HEIGHT - 20 }}
+          resizeMode="contain"
         />
       </View>
     );
@@ -105,8 +107,7 @@ export default function ViewerScreen() {
         <Image
           source={{ uri: url }}
           style={styles.thumbImage}
-          contentFit="cover"
-          transition={100}
+          resizeMode="cover"
         />
       </Pressable>
     );
@@ -210,6 +211,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+    height: HEADER_HEIGHT,
     borderBottomWidth: 1,
     borderBottomColor: "#333333",
   },
@@ -246,6 +248,7 @@ const styles = StyleSheet.create({
   thumbStrip: {
     backgroundColor: "#1A1A1A",
     paddingVertical: 8,
+    height: THUMB_STRIP_HEIGHT,
     borderBottomWidth: 1,
     borderBottomColor: "#333333",
   },
@@ -255,7 +258,7 @@ const styles = StyleSheet.create({
   },
   thumbItem: {
     width: 54,
-    height: 72,
+    height: 60,
     borderRadius: 4,
     overflow: "hidden",
     borderWidth: 2,
@@ -270,14 +273,8 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   mainImageWrapper: {
-    width: SCREEN_WIDTH,
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  mainImage: {
-    width: SCREEN_WIDTH,
-    height: "100%",
   },
   navArrow: {
     position: "absolute",
