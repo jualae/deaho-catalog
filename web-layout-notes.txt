@@ -1,0 +1,7 @@
+Web layout check round 2:
+- 2-column grid working correctly
+- Thumbnail height increased to 220px on web (120px on mobile)
+- Cards now look much more square-like with larger thumbnail area
+- All 10 categories visible with proper images
+- Color bar gradient working on each card
+- Layout looks good overall, ready for user review

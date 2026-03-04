@@ -5,7 +5,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
-  Dimensions,
+  Platform,
+  useWindowDimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -14,16 +15,21 @@ import { useCatalog } from "@/lib/catalog-context";
 import { LinearGradient } from "expo-linear-gradient";
 import type { Category } from "@/lib/catalog-types";
 
-const { width } = Dimensions.get("window");
 const COLUMN_COUNT = 2;
 const CARD_GAP = 12;
 const HORIZONTAL_PADDING = 16;
-const CARD_WIDTH = (width - HORIZONTAL_PADDING * 2 - CARD_GAP) / COLUMN_COUNT;
 
 export default function HomeScreen() {
   const router = useRouter();
   const { catalogData, loading, error, refreshData } =
     useCatalog();
+  const { width: windowWidth } = useWindowDimensions();
+
+  // On web with max-width container, use the container width (max 800px)
+  const effectiveWidth = Platform.OS === "web"
+    ? Math.min(windowWidth, 800)
+    : windowWidth;
+  const cardWidth = (effectiveWidth - HORIZONTAL_PADDING * 2 - CARD_GAP) / COLUMN_COUNT;
 
   const handleCategoryPress = (category: Category) => {
     router.push({
@@ -37,7 +43,7 @@ export default function HomeScreen() {
     return (
       <View
         style={[
-          styles.cardWrapper,
+          { width: cardWidth },
           { marginRight: index % COLUMN_COUNT === 0 ? CARD_GAP : 0 },
         ]}
       >
@@ -244,8 +250,5 @@ const styles = StyleSheet.create({
   columnWrapper: {
     paddingHorizontal: HORIZONTAL_PADDING,
     marginBottom: CARD_GAP,
-  },
-  cardWrapper: {
-    width: CARD_WIDTH,
   },
 });

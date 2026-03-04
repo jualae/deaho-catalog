@@ -12,10 +12,9 @@ const CATALOG_S3_URL =
 function getApiBaseUrl(): string {
   if (Platform.OS === "web") {
     const origin = window.location.origin;
-    if (origin.includes("8081-")) {
-      return origin.replace("8081-", "3000-");
-    }
-    return origin.replace(/:\d+$/, ":3000");
+    // Replace any port prefix (e.g., 8080- -> 3000-)
+    const newOrigin = origin.replace(/\d+-/, "3000-");
+    return newOrigin;
   }
   return "http://localhost:3000";
 }
@@ -80,15 +79,30 @@ export async function fetchCatalogData(): Promise<CatalogData> {
   try {
     let data: CatalogData;
 
-    // Try S3 first (fastest, no CORS issues)
-    try {
-      data = await fetchFromS3();
-    } catch {
-      // Fallback to server API
+    // On web, use server API first (avoids CORS issues with S3)
+    // On native, try S3 first (faster, no CORS issues)
+    if (Platform.OS === "web") {
       try {
         data = await fetchFromServer();
       } catch {
-        throw new Error("All data sources failed");
+        // Fallback to S3 if server fails
+        try {
+          data = await fetchFromS3();
+        } catch {
+          throw new Error("All data sources failed");
+        }
+      }
+    } else {
+      // Native: try S3 first
+      try {
+        data = await fetchFromS3();
+      } catch {
+        // Fallback to server API
+        try {
+          data = await fetchFromServer();
+        } catch {
+          throw new Error("All data sources failed");
+        }
       }
     }
 

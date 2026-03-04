@@ -1,8 +1,10 @@
-import { Text, View, Pressable, StyleSheet, Image } from "react-native";
+import { Text, View, Pressable, StyleSheet, Image, Platform } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import type { Category, CatalogData } from "@/lib/catalog-types";
 import { getImageUrl } from "@/lib/catalog-service";
+
+const isWeb = Platform.OS === "web";
 
 interface CategoryCardProps {
   category: Category;
@@ -100,7 +102,7 @@ const styles = StyleSheet.create({
   },
   thumb: {
     width: "100%",
-    height: 120,
+    height: isWeb ? 220 : 120,
     backgroundColor: "#EEEEEE",
   },
   thumbPlaceholder: {
