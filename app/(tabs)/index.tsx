@@ -208,9 +208,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   hero: {
-    height: 380,
     width: "100%",
-    backgroundColor: "#3A6FA0",
+    aspectRatio: 2048 / 1293,
   },
 
   sectionTitle: {
