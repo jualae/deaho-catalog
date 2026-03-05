@@ -39,13 +39,6 @@ export default function HomeScreen() {
   /* ---- Shared header ---- */
   const ListHeader = () => (
     <View>
-      <View style={styles.headerBar}>
-        <View>
-          <Text style={styles.headerTitle}>CERAD · 대호상사</Text>
-          <Text style={styles.headerSubtitle}>전문 미용 제품 카탈로그</Text>
-        </View>
-      </View>
-
       <Image
         source={{ uri: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663337257885/qmhnGuuJATJnDkgv.png" }}
         style={styles.hero}
