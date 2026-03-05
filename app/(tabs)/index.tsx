@@ -46,26 +46,11 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <LinearGradient
-        colors={["#1A237E", "#283593", "#0D47A1"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <Image
+        source={{ uri: "https://d2xsxph8kpxj0f.cloudfront.net/310519663337257885/g9FMjJFMH7rkmYiPvT29tr/hero-background-with-logo-Pc7nRuaqu7SjRaWp4AXt23.webp" }}
         style={styles.hero}
-      >
-        <Image
-          source={{ uri: "https://d2xsxph8kpxj0f.cloudfront.net/310519663337257885/g9FMjJFMH7rkmYiPvT29tr/organic-pattern-bg_3052167a.png" }}
-          style={styles.heroPattern}
-        />
-        <View style={styles.heroContent}>
-          <View style={styles.heroBadge}>
-            <Text style={styles.heroBadgeText}>CERAD CATALOG</Text>
-          </View>
-          <Image source={ceradLogo} style={styles.heroLogo} contentFit="contain" />
-          <Text style={styles.heroSubtitle}>
-            대호상사 · 전문 미용용품 종합 카탈로그
-          </Text>
-        </View>
-      </LinearGradient>
+        contentFit="cover"
+      />
 
       <View style={styles.sectionTitle}>
         <Text style={styles.sectionTitleText}>제품 카테고리</Text>
@@ -223,49 +208,10 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   hero: {
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-    alignItems: "center",
-    position: "relative",
-    overflow: "hidden",
+    height: 400,
+    width: "100%",
   },
-  heroPattern: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0.15,
-  },
-  heroContent: {
-    alignItems: "center",
-    zIndex: 1,
-  },
-  heroBadge: {
-    backgroundColor: "#FF6F00",
-    paddingHorizontal: 14,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginBottom: 12,
-    zIndex: 2,
-  },
-  heroBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 2,
-  },
-  heroLogo: {
-    width: 120,
-    height: 120,
-    borderRadius: 24,
-    marginBottom: 12,
-  },
-  heroSubtitle: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.8)",
-    textAlign: "center",
-  },
+
   sectionTitle: {
     paddingHorizontal: HORIZONTAL_PADDING,
     paddingTop: 24,
