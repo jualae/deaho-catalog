@@ -47,7 +47,7 @@ export default function HomeScreen() {
       </View>
 
       <Image
-        source={{ uri: "https://d2xsxph8kpxj0f.cloudfront.net/310519663337257885/g9FMjJFMH7rkmYiPvT29tr/hero-background-with-logo-Pc7nRuaqu7SjRaWp4AXt23.webp" }}
+        source={{ uri: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663337257885/rCbfonnEaeoYarJI.png" }}
         style={styles.hero}
         contentFit="cover"
       />
