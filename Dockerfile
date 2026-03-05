@@ -33,9 +33,6 @@ RUN pnpm install --frozen-lockfile --prod
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server ./server
 
-# Copy public directory if it exists
-COPY --from=builder /app/public ./public 2>/dev/null || true
-
 # Expose port
 EXPOSE 8080
 
