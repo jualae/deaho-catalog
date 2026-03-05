@@ -47,9 +47,9 @@ export default function HomeScreen() {
       </View>
 
       <Image
-        source={{ uri: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663337257885/sVFsHSoBrkIgrbpP.png" }}
+        source={{ uri: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663337257885/qmhnGuuJATJnDkgv.png" }}
         style={styles.hero}
-        contentFit="contain"
+        contentFit="cover"
       />
 
       <View style={styles.sectionTitle}>
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   hero: {
     height: 380,
     width: "100%",
-    backgroundColor: "#3B5998",
+    backgroundColor: "#3A6FA0",
   },
 
   sectionTitle: {
